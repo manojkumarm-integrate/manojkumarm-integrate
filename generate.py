@@ -123,8 +123,8 @@ def build_lines(s):
 def render(theme, ascii_rows, info_lines):
     c = THEMES[theme]
     lh, fs = 20, 14
-    rows = max(len(ascii_rows), len(info_lines))
-    height = rows * lh + 60
+    alh = 8  # ascii portrait line height (7px font)
+    height = max(len(ascii_rows) * alh, len(info_lines) * lh) + 50
     ascii_x, info_x = 20, 420
     out = [
         f'<?xml version="1.0" encoding="utf-8"?>',
@@ -136,12 +136,12 @@ def render(theme, ascii_rows, info_lines):
         "</style>",
         f'<rect width="985px" height="{height}px" fill="{c["bg"]}" rx="15"/>',
     ]
-    pad_top = 30 + (rows - len(ascii_rows)) * lh // 2
-    out.append(f'<text x="{ascii_x}" y="{pad_top}" fill="{c["fg"]}" font-size="12px" class="ascii">')
+    pad_top = 25 + (height - 50 - len(ascii_rows) * alh) // 2 + alh
+    out.append(f'<text x="{ascii_x}" y="{pad_top}" fill="{c["fg"]}" font-size="7px" class="ascii">')
     for i, row in enumerate(ascii_rows):
-        out.append(f'<tspan x="{ascii_x}" y="{pad_top + i * lh}">{esc(row)}</tspan>')
+        out.append(f'<tspan x="{ascii_x}" y="{pad_top + i * alh}">{esc(row)}</tspan>')
     out.append("</text>")
-    info_top = 30 + (rows - len(info_lines)) * lh // 2
+    info_top = 25 + (height - 50 - len(info_lines) * lh) // 2 + 15
     out.append(f'<text x="{info_x}" y="{info_top}" fill="{c["fg"]}">')
     for i, line in enumerate(info_lines):
         out.append(f'<tspan x="{info_x}" y="{info_top + i * lh}">{line}</tspan>')
@@ -151,9 +151,9 @@ def render(theme, ascii_rows, info_lines):
 
 def main():
     here = os.path.dirname(os.path.abspath(__file__))
-    ascii_rows = open(os.path.join(here, "ascii.txt")).read().rstrip("\n").split("\n")
     info = build_lines(fetch_stats())
     for theme in THEMES:
+        ascii_rows = open(os.path.join(here, f"ascii_{theme}.txt")).read().rstrip("\n").split("\n")
         with open(os.path.join(here, f"{theme}_mode.svg"), "w") as f:
             f.write(render(theme, ascii_rows, info))
 
